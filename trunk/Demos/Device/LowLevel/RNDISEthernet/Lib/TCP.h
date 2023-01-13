@@ -229,7 +229,7 @@
 		} TCP_Header_t;
 
 	/* External Variables: */
-		TCP_PortState_t PortStateTable[MAX_OPEN_TCP_PORTS];
+		extern TCP_PortState_t PortStateTable[MAX_OPEN_TCP_PORTS];
 
 	/* Function Prototypes: */
 		void                  TCP_Init(void);

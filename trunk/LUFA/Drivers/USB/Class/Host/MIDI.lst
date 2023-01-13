@@ -1,0 +1,1244 @@
+   1               		.file	"MIDI.c"
+   2               	__SP_H__ = 0x3e
+   3               	__SP_L__ = 0x3d
+   4               	__SREG__ = 0x3f
+   5               	__RAMPZ__ = 0x3b
+   6               	__tmp_reg__ = 0
+   7               	__zero_reg__ = 1
+   8               		.text
+   9               	.Ltext0:
+  10               		.cfi_sections	.debug_frame
+  11               		.file 1 "../../../../LUFA/Drivers/USB/Class/Host/MIDI.c"
+  12               		.section	.text.DComp_MIDI_Host_NextMIDIStreamingInterface,"ax",@progbits
+  14               	DComp_MIDI_Host_NextMIDIStreamingInterface:
+  15               	.LVL0:
+  16               	.LFB32:
+   1:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** /*
+   2:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****              LUFA Library
+   3:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****      Copyright (C) Dean Camera, 2010.
+   4:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****               
+   5:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   dean [at] fourwalledcubicle [dot] com
+   6:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****       www.fourwalledcubicle.com
+   7:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** */
+   8:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+   9:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** /*
+  10:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   Copyright 2010  Dean Camera (dean [at] fourwalledcubicle [dot] com)
+  11:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  12:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   Permission to use, copy, modify, distribute, and sell this 
+  13:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   software and its documentation for any purpose is hereby granted
+  14:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   without fee, provided that the above copyright notice appear in 
+  15:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   all copies and that both that the copyright notice and this
+  16:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   permission notice and warranty disclaimer appear in supporting 
+  17:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   documentation, and that the name of the author not be used in 
+  18:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   advertising or publicity pertaining to distribution of the 
+  19:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   software without specific, written prior permission.
+  20:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  21:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   The author disclaim all warranties with regard to this
+  22:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   software, including all implied warranties of merchantability
+  23:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   and fitness.  In no event shall the author be liable for any
+  24:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   special, indirect or consequential damages or any damages
+  25:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   whatsoever resulting from loss of use, data or profits, whether
+  26:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   in an action of contract, negligence or other tortious action,
+  27:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   arising out of or in connection with the use or performance of
+  28:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****   this software.
+  29:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** */
+  30:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  31:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** #define  __INCLUDE_FROM_USB_DRIVER
+  32:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** #include "../../HighLevel/USBMode.h"
+  33:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** #if defined(USB_CAN_BE_HOST)
+  34:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  35:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** #define  __INCLUDE_FROM_MIDI_CLASS_HOST_C
+  36:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** #define  __INCLUDE_FROM_MIDI_DRIVER
+  37:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** #include "MIDI.h"
+  38:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  39:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** uint8_t MIDI_Host_ConfigurePipes(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo, uint16_t Confi
+  40:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c ****                                  void* ConfigDescriptorData)
+  41:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** {
+  42:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	uint8_t FoundEndpoints = 0;
+  43:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  44:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	memset(&MIDIInterfaceInfo->State, 0x00, sizeof(MIDIInterfaceInfo->State));
+  45:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  46:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (DESCRIPTOR_TYPE(ConfigDescriptorData) != DTYPE_Configuration)
+  47:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return MIDI_ENUMERROR_InvalidConfigDescriptor;
+  48:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (USB_GetNextDescriptorComp(&ConfigDescriptorSize, &ConfigDescriptorData,
+  50:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+  51:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+  52:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		return MIDI_ENUMERROR_NoStreamingInterfaceFound;
+  53:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+  54:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+  55:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	while (FoundEndpoints != (MIDI_FOUND_DATAPIPE_IN | MIDI_FOUND_DATAPIPE_OUT))
+  56:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+  57:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if (USB_GetNextDescriptorComp(&ConfigDescriptorSize, &ConfigDescriptorData,
+  58:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		                              DComp_MIDI_Host_NextMIDIStreamingDataEndpoint) != DESCRIPTOR_SEARCH
+  59:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+  60:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			return MIDI_ENUMERROR_EndpointsNotFound;
+  61:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+  62:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		
+  63:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		USB_Descriptor_Endpoint_t* EndpointData = DESCRIPTOR_PCAST(ConfigDescriptorData, USB_Descriptor_E
+  64:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  65:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if (EndpointData->EndpointAddress & ENDPOINT_DESCRIPTOR_DIR_IN)
+  66:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+  67:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			Pipe_ConfigurePipe(MIDIInterfaceInfo->Config.DataINPipeNumber, EP_TYPE_BULK, PIPE_TOKEN_IN,
+  68:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   EndpointData->EndpointAddress, EndpointData->EndpointSize,
+  69:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   MIDIInterfaceInfo->Config.DataINPipeDoubleBank ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE);
+  70:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			MIDIInterfaceInfo->State.DataINPipeSize = EndpointData->EndpointSize;
+  71:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			
+  72:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			FoundEndpoints |= MIDI_FOUND_DATAPIPE_IN;
+  73:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+  74:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		else
+  75:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+  76:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			Pipe_ConfigurePipe(MIDIInterfaceInfo->Config.DataOUTPipeNumber, EP_TYPE_BULK, PIPE_TOKEN_OUT,
+  77:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   EndpointData->EndpointAddress, EndpointData->EndpointSize,
+  78:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   MIDIInterfaceInfo->Config.DataOUTPipeDoubleBank ? PIPE_BANK_DOUBLE : PIPE_BANK_SINGLE);
+  79:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			MIDIInterfaceInfo->State.DataOUTPipeSize = EndpointData->EndpointSize;
+  80:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  81:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			FoundEndpoints |= MIDI_FOUND_DATAPIPE_OUT;
+  82:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+  83:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+  84:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+  85:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	MIDIInterfaceInfo->State.IsActive = true;
+  86:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return MIDI_ENUMERROR_NoError;
+  87:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+  88:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  89:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** static uint8_t DComp_MIDI_Host_NextMIDIStreamingInterface(void* const CurrentDescriptor)
+  90:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** {
+  17               		.loc 1 90 1 view -0
+  18               		.cfi_startproc
+  19               	/* prologue: function */
+  20               	/* frame size = 0 */
+  21               	/* stack size = 0 */
+  22               	.L__stack_usage = 0
+  23               		.loc 1 90 1 is_stmt 0 view .LVU1
+  24 0000 FC01      		movw r30,r24
+  91:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (DESCRIPTOR_TYPE(CurrentDescriptor) == DTYPE_Interface)
+  25               		.loc 1 91 2 is_stmt 1 view .LVU2
+  26               		.loc 1 91 5 is_stmt 0 view .LVU3
+  27 0002 8181      		ldd r24,Z+1
+  28               	.LVL1:
+  29               		.loc 1 91 5 view .LVU4
+  30 0004 8430      		cpi r24,lo8(4)
+  31 0006 01F4      		brne .L6
+  32               	.LBB2:
+  92:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+  93:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		USB_Descriptor_Interface_t* CurrentInterface = DESCRIPTOR_PCAST(CurrentDescriptor,
+  33               		.loc 1 93 3 is_stmt 1 view .LVU5
+  34               	.LVL2:
+  94:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		                                                                USB_Descriptor_Interface_t);
+  95:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+  96:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if ((CurrentInterface->Class    == MIDI_STREAMING_CLASS)    &&
+  35               		.loc 1 96 3 view .LVU6
+  36               		.loc 1 96 6 is_stmt 0 view .LVU7
+  37 0008 8581      		ldd r24,Z+5
+  38 000a 8130      		cpi r24,lo8(1)
+  39 000c 01F4      		brne .L6
+  40               		.loc 1 96 63 discriminator 1 view .LVU8
+  41 000e 8681      		ldd r24,Z+6
+  42 0010 8330      		cpi r24,lo8(3)
+  43 0012 01F4      		brne .L6
+  97:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		    (CurrentInterface->SubClass == MIDI_STREAMING_SUBCLASS) &&
+  44               		.loc 1 97 63 view .LVU9
+  45 0014 81E0      		ldi r24,lo8(1)
+  46 0016 9781      		ldd r25,Z+7
+  47 0018 9111      		cpse r25,__zero_reg__
+  48 001a 00C0      		rjmp .L3
+  49 001c 80E0      		ldi r24,0
+  50               	.L3:
+  51 001e 880F      		lsl r24
+  52 0020 0895      		ret
+  53               	.LVL3:
+  54               	.L6:
+  55               		.loc 1 97 63 view .LVU10
+  56               	.LBE2:
+  98:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		    (CurrentInterface->Protocol == MIDI_STREAMING_PROTOCOL))
+  99:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+ 100:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			return DESCRIPTOR_SEARCH_Found;
+ 101:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 102:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+ 103:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 104:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return DESCRIPTOR_SEARCH_NotFound;
+  57               		.loc 1 104 9 view .LVU11
+  58 0022 82E0      		ldi r24,lo8(2)
+  59               	/* epilogue start */
+ 105:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+  60               		.loc 1 105 1 view .LVU12
+  61 0024 0895      		ret
+  62               		.cfi_endproc
+  63               	.LFE32:
+  65               		.section	.text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint,"ax",@progbits
+  67               	DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:
+  68               	.LVL4:
+  69               	.LFB33:
+ 106:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 107:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** static uint8_t DComp_MIDI_Host_NextMIDIStreamingDataEndpoint(void* const CurrentDescriptor)
+ 108:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** {
+  70               		.loc 1 108 1 is_stmt 1 view -0
+  71               		.cfi_startproc
+  72               	/* prologue: function */
+  73               	/* frame size = 0 */
+  74               	/* stack size = 0 */
+  75               	.L__stack_usage = 0
+  76               		.loc 1 108 1 is_stmt 0 view .LVU14
+  77 0000 FC01      		movw r30,r24
+ 109:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (DESCRIPTOR_TYPE(CurrentDescriptor) == DTYPE_Endpoint)
+  78               		.loc 1 109 2 is_stmt 1 view .LVU15
+  79               		.loc 1 109 6 is_stmt 0 view .LVU16
+  80 0002 8181      		ldd r24,Z+1
+  81               	.LVL5:
+  82               		.loc 1 109 5 view .LVU17
+  83 0004 8530      		cpi r24,lo8(5)
+  84 0006 01F4      		brne .L8
+  85               	.LBB3:
+ 110:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+ 111:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		USB_Descriptor_Endpoint_t* CurrentEndpoint = DESCRIPTOR_PCAST(CurrentDescriptor,
+  86               		.loc 1 111 3 is_stmt 1 view .LVU18
+  87               	.LVL6:
+ 112:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		                                                              USB_Descriptor_Endpoint_t);
+ 113:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 114:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		uint8_t EndpointType = (CurrentEndpoint->Attributes & EP_TYPE_MASK);
+  88               		.loc 1 114 3 view .LVU19
+ 115:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 116:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if ((EndpointType == EP_TYPE_BULK) && !(Pipe_IsEndpointBound(CurrentEndpoint->EndpointAddress)))
+  89               		.loc 1 116 3 view .LVU20
+ 114:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+  90               		.loc 1 114 11 is_stmt 0 view .LVU21
+  91 0008 8381      		ldd r24,Z+3
+  92 000a 8370      		andi r24,lo8(3)
+  93               	.LVL7:
+  94               		.loc 1 116 6 view .LVU22
+  95 000c 8230      		cpi r24,lo8(2)
+  96 000e 01F4      		brne .L11
+  97               		.loc 1 116 43 discriminator 1 view .LVU23
+  98 0010 8281      		ldd r24,Z+2
+  99               	.LVL8:
+ 100               		.loc 1 116 43 discriminator 1 view .LVU24
+ 101 0012 0E94 0000 		call Pipe_IsEndpointBound
+ 102               	.LVL9:
+ 103               		.loc 1 116 38 discriminator 1 view .LVU25
+ 104 0016 880F      		lsl r24
+ 105 0018 0895      		ret
+ 106               	.LVL10:
+ 107               	.L8:
+ 108               		.loc 1 116 38 discriminator 1 view .LVU26
+ 109               	.LBE3:
+ 117:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		  return DESCRIPTOR_SEARCH_Found;
+ 118:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+ 119:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	else if (DESCRIPTOR_TYPE(CurrentDescriptor) == DTYPE_Interface)
+ 110               		.loc 1 119 7 is_stmt 1 view .LVU27
+ 111               		.loc 1 119 10 is_stmt 0 view .LVU28
+ 112 001a 8430      		cpi r24,lo8(4)
+ 113 001c 01F4      		brne .L11
+ 120:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+ 121:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		return DESCRIPTOR_SEARCH_Fail;
+ 114               		.loc 1 121 10 view .LVU29
+ 115 001e 81E0      		ldi r24,lo8(1)
+ 116 0020 0895      		ret
+ 117               	.L11:
+ 122:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+ 123:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 124:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return DESCRIPTOR_SEARCH_NotFound;
+ 118               		.loc 1 124 9 view .LVU30
+ 119 0022 82E0      		ldi r24,lo8(2)
+ 120               	/* epilogue start */
+ 125:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+ 121               		.loc 1 125 1 view .LVU31
+ 122 0024 0895      		ret
+ 123               		.cfi_endproc
+ 124               	.LFE33:
+ 126               		.section	.text.MIDI_Host_ConfigurePipes,"ax",@progbits
+ 127               	.global	MIDI_Host_ConfigurePipes
+ 129               	MIDI_Host_ConfigurePipes:
+ 130               	.LVL11:
+ 131               	.LFB31:
+  41:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	uint8_t FoundEndpoints = 0;
+ 132               		.loc 1 41 1 is_stmt 1 view -0
+ 133               		.cfi_startproc
+  41:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	uint8_t FoundEndpoints = 0;
+ 134               		.loc 1 41 1 is_stmt 0 view .LVU33
+ 135 0000 5F92      		push r5
+ 136               	.LCFI0:
+ 137               		.cfi_def_cfa_offset 3
+ 138               		.cfi_offset 5, -2
+ 139 0002 6F92      		push r6
+ 140               	.LCFI1:
+ 141               		.cfi_def_cfa_offset 4
+ 142               		.cfi_offset 6, -3
+ 143 0004 7F92      		push r7
+ 144               	.LCFI2:
+ 145               		.cfi_def_cfa_offset 5
+ 146               		.cfi_offset 7, -4
+ 147 0006 8F92      		push r8
+ 148               	.LCFI3:
+ 149               		.cfi_def_cfa_offset 6
+ 150               		.cfi_offset 8, -5
+ 151 0008 9F92      		push r9
+ 152               	.LCFI4:
+ 153               		.cfi_def_cfa_offset 7
+ 154               		.cfi_offset 9, -6
+ 155 000a AF92      		push r10
+ 156               	.LCFI5:
+ 157               		.cfi_def_cfa_offset 8
+ 158               		.cfi_offset 10, -7
+ 159 000c BF92      		push r11
+ 160               	.LCFI6:
+ 161               		.cfi_def_cfa_offset 9
+ 162               		.cfi_offset 11, -8
+ 163 000e CF92      		push r12
+ 164               	.LCFI7:
+ 165               		.cfi_def_cfa_offset 10
+ 166               		.cfi_offset 12, -9
+ 167 0010 DF92      		push r13
+ 168               	.LCFI8:
+ 169               		.cfi_def_cfa_offset 11
+ 170               		.cfi_offset 13, -10
+ 171 0012 EF92      		push r14
+ 172               	.LCFI9:
+ 173               		.cfi_def_cfa_offset 12
+ 174               		.cfi_offset 14, -11
+ 175 0014 FF92      		push r15
+ 176               	.LCFI10:
+ 177               		.cfi_def_cfa_offset 13
+ 178               		.cfi_offset 15, -12
+ 179 0016 0F93      		push r16
+ 180               	.LCFI11:
+ 181               		.cfi_def_cfa_offset 14
+ 182               		.cfi_offset 16, -13
+ 183 0018 1F93      		push r17
+ 184               	.LCFI12:
+ 185               		.cfi_def_cfa_offset 15
+ 186               		.cfi_offset 17, -14
+ 187 001a CF93      		push r28
+ 188               	.LCFI13:
+ 189               		.cfi_def_cfa_offset 16
+ 190               		.cfi_offset 28, -15
+ 191 001c DF93      		push r29
+ 192               	.LCFI14:
+ 193               		.cfi_def_cfa_offset 17
+ 194               		.cfi_offset 29, -16
+ 195 001e 00D0      		rcall .
+ 196 0020 00D0      		rcall .
+ 197               	.LCFI15:
+ 198               		.cfi_def_cfa_offset 21
+ 199 0022 CDB7      		in r28,__SP_L__
+ 200 0024 DEB7      		in r29,__SP_H__
+ 201               	.LCFI16:
+ 202               		.cfi_def_cfa_register 28
+ 203               	/* prologue: function */
+ 204               	/* frame size = 4 */
+ 205               	/* stack size = 19 */
+ 206               	.L__stack_usage = 19
+ 207 0026 6C01      		movw r12,r24
+ 208 0028 7A83      		std Y+2,r23
+ 209 002a 6983      		std Y+1,r22
+ 210 002c 5C83      		std Y+4,r21
+ 211 002e 4B83      		std Y+3,r20
+  42:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 212               		.loc 1 42 2 is_stmt 1 view .LVU34
+ 213               	.LVL12:
+  44:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 214               		.loc 1 44 2 view .LVU35
+ 215 0030 FC01      		movw r30,r24
+ 216 0032 3496      		adiw r30,4
+ 217 0034 85E0      		ldi r24,lo8(5)
+ 218               	.LVL13:
+  44:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 219               		.loc 1 44 2 is_stmt 0 view .LVU36
+ 220 0036 DF01      		movw r26,r30
+ 221               		0:
+ 222 0038 1D92      		st X+,__zero_reg__
+ 223 003a 8A95      		dec r24
+ 224 003c 01F4      		brne 0b
+  46:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return MIDI_ENUMERROR_InvalidConfigDescriptor;
+ 225               		.loc 1 46 2 is_stmt 1 view .LVU37
+  46:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return MIDI_ENUMERROR_InvalidConfigDescriptor;
+ 226               		.loc 1 46 6 is_stmt 0 view .LVU38
+ 227 003e EB81      		ldd r30,Y+3
+ 228 0040 FC81      		ldd r31,Y+4
+ 229 0042 F180      		ldd r15,Z+1
+  46:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return MIDI_ENUMERROR_InvalidConfigDescriptor;
+ 230               		.loc 1 46 5 view .LVU39
+ 231 0044 B2E0      		ldi r27,lo8(2)
+ 232 0046 FB12      		cpse r15,r27
+ 233 0048 00C0      		rjmp .L17
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+ 234               		.loc 1 49 2 is_stmt 1 view .LVU40
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+ 235               		.loc 1 49 6 is_stmt 0 view .LVU41
+ 236 004a 4E01      		movw r8,r28
+ 237 004c E3E0      		ldi r30,3
+ 238 004e 8E0E      		add r8,r30
+ 239 0050 911C      		adc r9,__zero_reg__
+ 240 0052 40E0      		ldi r20,lo8(gs(DComp_MIDI_Host_NextMIDIStreamingInterface))
+ 241 0054 50E0      		ldi r21,hi8(gs(DComp_MIDI_Host_NextMIDIStreamingInterface))
+ 242               	.LVL14:
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+ 243               		.loc 1 49 6 view .LVU42
+ 244 0056 B401      		movw r22,r8
+ 245               	.LVL15:
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+ 246               		.loc 1 49 6 view .LVU43
+ 247 0058 8E01      		movw r16,r28
+ 248 005a 0F5F      		subi r16,-1
+ 249 005c 1F4F      		sbci r17,-1
+ 250 005e C801      		movw r24,r16
+ 251 0060 0E94 0000 		call USB_GetNextDescriptorComp
+ 252               	.LVL16:
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+ 253               		.loc 1 49 6 view .LVU44
+ 254 0064 B82E      		mov r11,r24
+ 255 0066 A82C      		mov r10,r8
+ 256 0068 792C      		mov r7,r9
+ 257 006a 602E      		mov r6,r16
+ 258 006c 512E      		mov r5,r17
+  49:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	                              DComp_MIDI_Host_NextMIDIStreamingInterface) != DESCRIPTOR_SEARCH_COM
+ 259               		.loc 1 49 5 view .LVU45
+ 260 006e 8111      		cpse r24,__zero_reg__
+ 261 0070 00C0      		rjmp .L12
+ 262               	.LVL17:
+ 263               	.L16:
+ 264               	.LBB4:
+  57:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		                              DComp_MIDI_Host_NextMIDIStreamingDataEndpoint) != DESCRIPTOR_SEARCH
+ 265               		.loc 1 57 3 is_stmt 1 view .LVU46
+  57:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		                              DComp_MIDI_Host_NextMIDIStreamingDataEndpoint) != DESCRIPTOR_SEARCH
+ 266               		.loc 1 57 7 is_stmt 0 view .LVU47
+ 267 0072 40E0      		ldi r20,lo8(gs(DComp_MIDI_Host_NextMIDIStreamingDataEndpoint))
+ 268 0074 50E0      		ldi r21,hi8(gs(DComp_MIDI_Host_NextMIDIStreamingDataEndpoint))
+ 269 0076 6A2D      		mov r22,r10
+ 270 0078 772D      		mov r23,r7
+ 271 007a 862D      		mov r24,r6
+ 272 007c 952D      		mov r25,r5
+ 273 007e 0E94 0000 		call USB_GetNextDescriptorComp
+ 274               	.LVL18:
+ 275 0082 F82E      		mov r15,r24
+  57:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		                              DComp_MIDI_Host_NextMIDIStreamingDataEndpoint) != DESCRIPTOR_SEARCH
+ 276               		.loc 1 57 6 view .LVU48
+ 277 0084 8111      		cpse r24,__zero_reg__
+ 278 0086 00C0      		rjmp .L18
+  63:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 279               		.loc 1 63 3 is_stmt 1 view .LVU49
+  63:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 280               		.loc 1 63 30 is_stmt 0 view .LVU50
+ 281 0088 8B80      		ldd r8,Y+3
+ 282 008a 9C80      		ldd r9,Y+4
+ 283               	.LVL19:
+  65:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+ 284               		.loc 1 65 3 is_stmt 1 view .LVU51
+  65:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+ 285               		.loc 1 65 19 is_stmt 0 view .LVU52
+ 286 008c D401      		movw r26,r8
+ 287 008e 1296      		adiw r26,2
+ 288 0090 2C91      		ld r18,X
+ 289 0092 1297      		sbiw r26,2
+  67:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   EndpointData->EndpointAddress, EndpointData->EndpointSize,
+ 290               		.loc 1 67 4 view .LVU53
+ 291 0094 1496      		adiw r26,4
+ 292 0096 0D91      		ld r16,X+
+ 293 0098 1C91      		ld r17,X
+  65:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		{
+ 294               		.loc 1 65 6 view .LVU54
+ 295 009a 27FF      		sbrs r18,7
+ 296 009c 00C0      		rjmp .L14
+  67:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   EndpointData->EndpointAddress, EndpointData->EndpointSize,
+ 297               		.loc 1 67 4 is_stmt 1 view .LVU55
+ 298 009e F601      		movw r30,r12
+ 299 00a0 E180      		ldd r14,Z+1
+ 300 00a2 EE0C      		lsl r14
+ 301 00a4 EE0C      		lsl r14
+ 302 00a6 40E1      		ldi r20,lo8(16)
+ 303 00a8 62E0      		ldi r22,lo8(2)
+ 304 00aa 8081      		ld r24,Z
+ 305 00ac 0E94 0000 		call Pipe_ConfigurePipe
+ 306               	.LVL20:
+  70:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			
+ 307               		.loc 1 70 4 view .LVU56
+  70:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 			
+ 308               		.loc 1 70 44 is_stmt 0 view .LVU57
+ 309 00b0 D401      		movw r26,r8
+ 310 00b2 1496      		adiw r26,4
+ 311 00b4 8D91      		ld r24,X+
+ 312 00b6 9C91      		ld r25,X
+ 313 00b8 F601      		movw r30,r12
+ 314 00ba 9683      		std Z+6,r25
+ 315 00bc 8583      		std Z+5,r24
+  72:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 316               		.loc 1 72 4 is_stmt 1 view .LVU58
+  72:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 317               		.loc 1 72 19 is_stmt 0 view .LVU59
+ 318 00be 6894      		set
+ 319 00c0 B0F8      		bld r11,0
+ 320               	.LVL21:
+ 321               	.L15:
+  72:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 322               		.loc 1 72 19 view .LVU60
+ 323               	.LBE4:
+  55:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+ 324               		.loc 1 55 24 is_stmt 1 view .LVU61
+ 325 00c2 B3E0      		ldi r27,lo8(3)
+ 326 00c4 BB12      		cpse r11,r27
+ 327 00c6 00C0      		rjmp .L16
+  85:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return MIDI_ENUMERROR_NoError;
+ 328               		.loc 1 85 2 view .LVU62
+  85:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return MIDI_ENUMERROR_NoError;
+ 329               		.loc 1 85 36 is_stmt 0 view .LVU63
+ 330 00c8 81E0      		ldi r24,lo8(1)
+ 331 00ca F601      		movw r30,r12
+ 332 00cc 8483      		std Z+4,r24
+  86:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+ 333               		.loc 1 86 2 is_stmt 1 view .LVU64
+ 334               	.LVL22:
+ 335               	.L12:
+  87:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 336               		.loc 1 87 1 is_stmt 0 view .LVU65
+ 337 00ce 8F2D      		mov r24,r15
+ 338               	/* epilogue start */
+ 339 00d0 0F90      		pop __tmp_reg__
+ 340 00d2 0F90      		pop __tmp_reg__
+ 341 00d4 0F90      		pop __tmp_reg__
+ 342 00d6 0F90      		pop __tmp_reg__
+ 343 00d8 DF91      		pop r29
+ 344 00da CF91      		pop r28
+ 345 00dc 1F91      		pop r17
+ 346 00de 0F91      		pop r16
+ 347 00e0 FF90      		pop r15
+ 348 00e2 EF90      		pop r14
+ 349 00e4 DF90      		pop r13
+ 350 00e6 CF90      		pop r12
+ 351               	.LVL23:
+  87:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 352               		.loc 1 87 1 view .LVU66
+ 353 00e8 BF90      		pop r11
+ 354 00ea AF90      		pop r10
+ 355 00ec 9F90      		pop r9
+ 356 00ee 8F90      		pop r8
+ 357 00f0 7F90      		pop r7
+ 358 00f2 6F90      		pop r6
+ 359 00f4 5F90      		pop r5
+ 360 00f6 0895      		ret
+ 361               	.LVL24:
+ 362               	.L14:
+ 363               	.LBB5:
+  76:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 							   EndpointData->EndpointAddress, EndpointData->EndpointSize,
+ 364               		.loc 1 76 4 is_stmt 1 view .LVU67
+ 365 00f8 D601      		movw r26,r12
+ 366 00fa 1396      		adiw r26,3
+ 367 00fc EC90      		ld r14,X
+ 368 00fe 1397      		sbiw r26,3
+ 369 0100 EE0C      		lsl r14
+ 370 0102 EE0C      		lsl r14
+ 371 0104 40E2      		ldi r20,lo8(32)
+ 372 0106 62E0      		ldi r22,lo8(2)
+ 373 0108 1296      		adiw r26,2
+ 374 010a 8C91      		ld r24,X
+ 375 010c 0E94 0000 		call Pipe_ConfigurePipe
+ 376               	.LVL25:
+  79:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 377               		.loc 1 79 4 view .LVU68
+  79:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 378               		.loc 1 79 45 is_stmt 0 view .LVU69
+ 379 0110 F401      		movw r30,r8
+ 380 0112 8481      		ldd r24,Z+4
+ 381 0114 9581      		ldd r25,Z+5
+ 382 0116 D601      		movw r26,r12
+ 383 0118 1896      		adiw r26,7+1
+ 384 011a 9C93      		st X,r25
+ 385 011c 8E93      		st -X,r24
+ 386 011e 1797      		sbiw r26,7
+  81:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 387               		.loc 1 81 4 is_stmt 1 view .LVU70
+  81:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 388               		.loc 1 81 19 is_stmt 0 view .LVU71
+ 389 0120 6894      		set
+ 390 0122 B1F8      		bld r11,1
+ 391               	.LVL26:
+  81:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 392               		.loc 1 81 19 view .LVU72
+ 393 0124 00C0      		rjmp .L15
+ 394               	.LVL27:
+ 395               	.L17:
+  81:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 396               		.loc 1 81 19 view .LVU73
+ 397               	.LBE5:
+  47:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 398               		.loc 1 47 11 view .LVU74
+ 399 0126 FF24      		clr r15
+ 400 0128 F394      		inc r15
+ 401 012a 00C0      		rjmp .L12
+ 402               	.LVL28:
+ 403               	.L18:
+ 404               	.LBB6:
+  60:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		}
+ 405               		.loc 1 60 11 view .LVU75
+ 406 012c 83E0      		ldi r24,lo8(3)
+ 407 012e F82E      		mov r15,r24
+ 408 0130 00C0      		rjmp .L12
+ 409               	.LBE6:
+ 410               		.cfi_endproc
+ 411               	.LFE31:
+ 413               		.section	.text.MIDI_Host_Flush,"ax",@progbits
+ 414               	.global	MIDI_Host_Flush
+ 416               	MIDI_Host_Flush:
+ 417               	.LVL29:
+ 418               	.LFB34:
+ 126:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 127:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** uint8_t MIDI_Host_Flush(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo)
+ 128:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** {
+ 419               		.loc 1 128 1 is_stmt 1 view -0
+ 420               		.cfi_startproc
+ 421               	/* prologue: function */
+ 422               	/* frame size = 0 */
+ 423               	/* stack size = 0 */
+ 424               	.L__stack_usage = 0
+ 425               		.loc 1 128 1 is_stmt 0 view .LVU77
+ 426 0000 FC01      		movw r30,r24
+ 129:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (USB_HostState != HOST_STATE_Configured)
+ 427               		.loc 1 129 2 is_stmt 1 view .LVU78
+ 428               		.loc 1 129 20 is_stmt 0 view .LVU79
+ 429 0002 8091 0000 		lds r24,USB_HostState
+ 430               	.LVL30:
+ 431               		.loc 1 129 5 view .LVU80
+ 432 0006 8C30      		cpi r24,lo8(12)
+ 433 0008 01F4      		brne .L22
+ 130:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return PIPE_RWSTREAM_DeviceDisconnected;
+ 131:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 132:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	uint8_t ErrorCode;
+ 434               		.loc 1 132 2 is_stmt 1 view .LVU81
+ 133:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 134:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	Pipe_SelectPipe(MIDIInterfaceInfo->Config.DataOUTPipeNumber);
+ 435               		.loc 1 134 2 view .LVU82
+ 436               		.loc 1 134 2 view .LVU83
+ 437 000a 8281      		ldd r24,Z+2
+ 438 000c 8093 A700 		sts 167,r24
+ 439               		.loc 1 134 2 view .LVU84
+ 135:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 136:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (Pipe_BytesInPipe())
+ 440               		.loc 1 136 2 view .LVU85
+ 441               		.loc 1 136 6 is_stmt 0 view .LVU86
+ 442 0010 8091 F600 		lds r24,246
+ 443 0014 9091 F700 		lds r25,246+1
+ 444               		.loc 1 136 5 view .LVU87
+ 445 0018 892B      		or r24,r25
+ 446 001a 01F0      		breq .L23
+ 137:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+ 138:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		Pipe_ClearOUT();
+ 447               		.loc 1 138 3 is_stmt 1 view .LVU88
+ 448               	.LBB7:
+ 449               		.loc 1 138 3 view .LVU89
+ 450 001c 8091 A600 		lds r24,166
+ 451               	.LVL31:
+ 452               		.loc 1 138 3 view .LVU90
+ 453 0020 982F      		mov r25,r24
+ 454 0022 9B7F      		andi r25,lo8(-5)
+ 455 0024 9093 A600 		sts 166,r25
+ 456               		.loc 1 138 3 view .LVU91
+ 457 0028 8F77      		andi r24,lo8(127)
+ 458               	.LVL32:
+ 459               		.loc 1 138 3 is_stmt 0 view .LVU92
+ 460 002a 8093 A600 		sts 166,r24
+ 461               	.LBE7:
+ 462               		.loc 1 138 3 is_stmt 1 view .LVU93
+ 139:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 140:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if ((ErrorCode = Pipe_WaitUntilReady()) != PIPE_READYWAIT_NoError)
+ 463               		.loc 1 140 3 view .LVU94
+ 464               		.loc 1 140 20 is_stmt 0 view .LVU95
+ 465 002e 0C94 0000 		jmp Pipe_WaitUntilReady
+ 466               	.LVL33:
+ 467               	.L22:
+ 130:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 468               		.loc 1 130 11 view .LVU96
+ 469 0032 82E0      		ldi r24,lo8(2)
+ 470 0034 0895      		ret
+ 471               	.L23:
+ 141:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		  return ErrorCode;
+ 142:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+ 143:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 144:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return PIPE_READYWAIT_NoError;
+ 472               		.loc 1 144 9 view .LVU97
+ 473 0036 80E0      		ldi r24,0
+ 474               	/* epilogue start */
+ 145:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+ 475               		.loc 1 145 1 view .LVU98
+ 476 0038 0895      		ret
+ 477               		.cfi_endproc
+ 478               	.LFE34:
+ 480               		.section	.text.MIDI_Host_SendEventPacket,"ax",@progbits
+ 481               	.global	MIDI_Host_SendEventPacket
+ 483               	MIDI_Host_SendEventPacket:
+ 484               	.LVL34:
+ 485               	.LFB35:
+ 146:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 147:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** uint8_t MIDI_Host_SendEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo, MIDI_EventPac
+ 148:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** {
+ 486               		.loc 1 148 1 is_stmt 1 view -0
+ 487               		.cfi_startproc
+ 488               	/* prologue: function */
+ 489               	/* frame size = 0 */
+ 490               	/* stack size = 0 */
+ 491               	.L__stack_usage = 0
+ 492               		.loc 1 148 1 is_stmt 0 view .LVU100
+ 493 0000 FC01      		movw r30,r24
+ 494 0002 CB01      		movw r24,r22
+ 495               	.LVL35:
+ 149:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if ((USB_HostState != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
+ 496               		.loc 1 149 2 is_stmt 1 view .LVU101
+ 497               		.loc 1 149 21 is_stmt 0 view .LVU102
+ 498 0004 2091 0000 		lds r18,USB_HostState
+ 499               		.loc 1 149 5 view .LVU103
+ 500 0008 2C30      		cpi r18,lo8(12)
+ 501 000a 01F4      		brne .L30
+ 502               		.loc 1 149 47 discriminator 1 view .LVU104
+ 503 000c 2481      		ldd r18,Z+4
+ 504 000e 2223      		tst r18
+ 505 0010 01F0      		breq .L30
+ 150:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return HOST_SENDCONTROL_DeviceDisconnected;
+ 151:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 152:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	Pipe_SelectPipe(MIDIInterfaceInfo->Config.DataOUTPipeNumber);
+ 506               		.loc 1 152 2 is_stmt 1 view .LVU105
+ 507               		.loc 1 152 2 view .LVU106
+ 508 0012 2281      		ldd r18,Z+2
+ 509 0014 2093 A700 		sts 167,r18
+ 510               		.loc 1 152 2 view .LVU107
+ 153:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 154:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (Pipe_IsReadWriteAllowed())
+ 511               		.loc 1 154 2 view .LVU108
+ 512               		.loc 1 154 6 is_stmt 0 view .LVU109
+ 513 0018 2091 A600 		lds r18,166
+ 514               		.loc 1 154 5 view .LVU110
+ 515 001c 25FF      		sbrs r18,5
+ 516 001e 00C0      		rjmp .L27
+ 517               	.LBB8:
+ 155:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	{
+ 156:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		uint8_t ErrorCode;
+ 518               		.loc 1 156 3 is_stmt 1 view .LVU111
+ 157:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 158:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if ((ErrorCode = Pipe_Write_Stream_LE(Event, sizeof(MIDI_EventPacket_t), NO_STREAM_CALLBACK)) != 
+ 519               		.loc 1 158 3 view .LVU112
+ 520               		.loc 1 158 20 is_stmt 0 view .LVU113
+ 521 0020 40E0      		ldi r20,0
+ 522 0022 50E0      		ldi r21,0
+ 523 0024 64E0      		ldi r22,lo8(4)
+ 524 0026 70E0      		ldi r23,0
+ 525               	.LVL36:
+ 526               		.loc 1 158 20 view .LVU114
+ 527 0028 0E94 0000 		call Pipe_Write_Stream_LE
+ 528               	.LVL37:
+ 529               		.loc 1 158 6 view .LVU115
+ 530 002c 8111      		cpse r24,__zero_reg__
+ 531 002e 00C0      		rjmp .L24
+ 159:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		  return ErrorCode;
+ 160:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 161:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		if (!(Pipe_IsReadWriteAllowed()))
+ 532               		.loc 1 161 3 is_stmt 1 view .LVU116
+ 533               		.loc 1 161 9 is_stmt 0 view .LVU117
+ 534 0030 8091 A600 		lds r24,166
+ 535               	.LVL38:
+ 536               		.loc 1 161 6 view .LVU118
+ 537 0034 85FD      		sbrc r24,5
+ 538 0036 00C0      		rjmp .L27
+ 162:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 		  Pipe_ClearOUT();
+ 539               		.loc 1 162 5 is_stmt 1 view .LVU119
+ 540               	.LBB9:
+ 541               		.loc 1 162 5 view .LVU120
+ 542 0038 8091 A600 		lds r24,166
+ 543               	.LVL39:
+ 544               		.loc 1 162 5 view .LVU121
+ 545 003c 982F      		mov r25,r24
+ 546 003e 9B7F      		andi r25,lo8(-5)
+ 547 0040 9093 A600 		sts 166,r25
+ 548               		.loc 1 162 5 view .LVU122
+ 549 0044 8F77      		andi r24,lo8(127)
+ 550               	.LVL40:
+ 551               		.loc 1 162 5 is_stmt 0 view .LVU123
+ 552 0046 8093 A600 		sts 166,r24
+ 553               	.LVL41:
+ 554               	.L27:
+ 555               		.loc 1 162 5 view .LVU124
+ 556               	.LBE9:
+ 557               	.LBE8:
+ 163:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	}
+ 164:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 165:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return PIPE_RWSTREAM_NoError;
+ 558               		.loc 1 165 9 view .LVU125
+ 559 004a 80E0      		ldi r24,0
+ 560 004c 0895      		ret
+ 561               	.LVL42:
+ 562               	.L30:
+ 150:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 563               		.loc 1 150 11 view .LVU126
+ 564 004e 81E0      		ldi r24,lo8(1)
+ 565               	.LVL43:
+ 566               	.L24:
+ 567               	/* epilogue start */
+ 166:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+ 568               		.loc 1 166 1 view .LVU127
+ 569 0050 0895      		ret
+ 570               		.cfi_endproc
+ 571               	.LFE35:
+ 573               		.section	.text.MIDI_Host_ReceiveEventPacket,"ax",@progbits
+ 574               	.global	MIDI_Host_ReceiveEventPacket
+ 576               	MIDI_Host_ReceiveEventPacket:
+ 577               	.LVL44:
+ 578               	.LFB36:
+ 167:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 168:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** bool MIDI_Host_ReceiveEventPacket(USB_ClassInfo_MIDI_Host_t* const MIDIInterfaceInfo, MIDI_EventPac
+ 169:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** {
+ 579               		.loc 1 169 1 is_stmt 1 view -0
+ 580               		.cfi_startproc
+ 581               	/* prologue: function */
+ 582               	/* frame size = 0 */
+ 583               	/* stack size = 0 */
+ 584               	.L__stack_usage = 0
+ 585               		.loc 1 169 1 is_stmt 0 view .LVU129
+ 586 0000 FC01      		movw r30,r24
+ 587 0002 CB01      		movw r24,r22
+ 588               	.LVL45:
+ 170:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if ((USB_HostState != HOST_STATE_Configured) || !(MIDIInterfaceInfo->State.IsActive))
+ 589               		.loc 1 170 2 is_stmt 1 view .LVU130
+ 590               		.loc 1 170 21 is_stmt 0 view .LVU131
+ 591 0004 2091 0000 		lds r18,USB_HostState
+ 592               		.loc 1 170 5 view .LVU132
+ 593 0008 2C30      		cpi r18,lo8(12)
+ 594 000a 01F4      		brne .L33
+ 595               		.loc 1 170 47 discriminator 1 view .LVU133
+ 596 000c 2481      		ldd r18,Z+4
+ 597 000e 2223      		tst r18
+ 598 0010 01F0      		breq .L33
+ 171:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return HOST_SENDCONTROL_DeviceDisconnected;
+ 172:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 173:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	Pipe_SelectPipe(MIDIInterfaceInfo->Config.DataINPipeNumber);
+ 599               		.loc 1 173 2 is_stmt 1 view .LVU134
+ 600               		.loc 1 173 2 view .LVU135
+ 601 0012 2081      		ld r18,Z
+ 602 0014 2093 A700 		sts 167,r18
+ 603               		.loc 1 173 2 view .LVU136
+ 174:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 175:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (!(Pipe_IsReadWriteAllowed()))
+ 604               		.loc 1 175 2 view .LVU137
+ 605               		.loc 1 175 8 is_stmt 0 view .LVU138
+ 606 0018 2091 A600 		lds r18,166
+ 607               		.loc 1 175 5 view .LVU139
+ 608 001c 25FF      		sbrs r18,5
+ 609 001e 00C0      		rjmp .L36
+ 176:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  return false;
+ 177:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 178:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	Pipe_Read_Stream_LE(Event, sizeof(MIDI_EventPacket_t), NO_STREAM_CALLBACK);
+ 610               		.loc 1 178 2 is_stmt 1 view .LVU140
+ 611 0020 40E0      		ldi r20,0
+ 612 0022 50E0      		ldi r21,0
+ 613 0024 64E0      		ldi r22,lo8(4)
+ 614 0026 70E0      		ldi r23,0
+ 615               	.LVL46:
+ 616               		.loc 1 178 2 is_stmt 0 view .LVU141
+ 617 0028 0E94 0000 		call Pipe_Read_Stream_LE
+ 618               	.LVL47:
+ 179:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 180:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	if (!(Pipe_IsReadWriteAllowed()))
+ 619               		.loc 1 180 2 is_stmt 1 view .LVU142
+ 620               		.loc 1 180 8 is_stmt 0 view .LVU143
+ 621 002c 8091 A600 		lds r24,166
+ 622               		.loc 1 180 5 view .LVU144
+ 623 0030 85FD      		sbrc r24,5
+ 624 0032 00C0      		rjmp .L33
+ 181:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	  Pipe_ClearIN();
+ 625               		.loc 1 181 4 is_stmt 1 view .LVU145
+ 626               	.LBB10:
+ 627               		.loc 1 181 4 view .LVU146
+ 628 0034 8091 A600 		lds r24,166
+ 629               	.LVL48:
+ 630               		.loc 1 181 4 view .LVU147
+ 631 0038 982F      		mov r25,r24
+ 632 003a 9E7F      		andi r25,lo8(-2)
+ 633 003c 9093 A600 		sts 166,r25
+ 634               		.loc 1 181 4 view .LVU148
+ 635 0040 8F77      		andi r24,lo8(127)
+ 636               	.LVL49:
+ 637               		.loc 1 181 4 is_stmt 0 view .LVU149
+ 638 0042 8093 A600 		sts 166,r24
+ 639               	.LVL50:
+ 640               	.L33:
+ 641               		.loc 1 181 4 view .LVU150
+ 642               	.LBE10:
+ 171:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 643               		.loc 1 171 11 view .LVU151
+ 644 0046 81E0      		ldi r24,lo8(1)
+ 645 0048 0895      		ret
+ 646               	.LVL51:
+ 647               	.L36:
+ 176:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 
+ 648               		.loc 1 176 11 view .LVU152
+ 649 004a 80E0      		ldi r24,0
+ 650               	/* epilogue start */
+ 182:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	
+ 183:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** 	return true;
+ 184:../../../../LUFA/Drivers/USB/Class/Host/MIDI.c **** }
+ 651               		.loc 1 184 1 view .LVU153
+ 652 004c 0895      		ret
+ 653               		.cfi_endproc
+ 654               	.LFE36:
+ 656               		.text
+ 657               	.Letext0:
+ 658               		.file 2 "d:\\msys64\\ucrt64\\avr\\include\\stdint.h"
+ 659               		.file 3 "d:\\msys64\\ucrt64\\lib\\gcc\\avr\\12.2.0\\include\\stddef.h"
+ 660               		.file 4 "c:\\users\\cirno999\\downloads\\lufa-lib-master\\trunk\\lufa\\drivers\\usb\\highlevel\\st
+ 661               		.file 5 "c:\\users\\cirno999\\downloads\\lufa-lib-master\\trunk\\lufa\\drivers\\usb\\highlevel\\st
+ 662               		.file 6 "../../../../LUFA/Drivers/USB/Class/Host/../../HighLevel/../LowLevel/Pipe.h"
+ 663               		.file 7 "../../../../LUFA/Drivers/USB/Class/Host/../../HighLevel/../LowLevel/Host.h"
+ 664               		.file 8 "../../../../LUFA/Drivers/USB/Class/Host/../../HighLevel/../LowLevel/HostChapter9.h"
+ 665               		.file 9 "../../../../LUFA/Drivers/USB/Class/Host/../../HighLevel/ConfigDescriptor.h"
+ 666               		.file 10 "../../../../LUFA/Drivers/USB/Class/Host/../Common/MIDI.h"
+ 667               		.file 11 "../../../../LUFA/Drivers/USB/Class/Host/MIDI.h"
+ 668               		.file 12 "d:\\msys64\\ucrt64\\avr\\include\\string.h"
+ 669               		.file 13 "../../../../LUFA/Drivers/USB/Class/Host/../../HighLevel/USBTask.h"
+DEFINED SYMBOLS
+                            *ABS*:0000000000000000 MIDI.c
+D:\msys64\tmp\ccMMpT6B.s:2      *ABS*:000000000000003e __SP_H__
+D:\msys64\tmp\ccMMpT6B.s:3      *ABS*:000000000000003d __SP_L__
+D:\msys64\tmp\ccMMpT6B.s:4      *ABS*:000000000000003f __SREG__
+D:\msys64\tmp\ccMMpT6B.s:5      *ABS*:000000000000003b __RAMPZ__
+D:\msys64\tmp\ccMMpT6B.s:6      *ABS*:0000000000000000 __tmp_reg__
+D:\msys64\tmp\ccMMpT6B.s:7      *ABS*:0000000000000001 __zero_reg__
+D:\msys64\tmp\ccMMpT6B.s:14     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000000 DComp_MIDI_Host_NextMIDIStreamingInterface
+D:\msys64\tmp\ccMMpT6B.s:17     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000000 .Loc.0
+D:\msys64\tmp\ccMMpT6B.s:18     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:23     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000000 .Loc.1
+D:\msys64\tmp\ccMMpT6B.s:25     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000002 .Loc.2
+D:\msys64\tmp\ccMMpT6B.s:26     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000002 .Loc.3
+D:\msys64\tmp\ccMMpT6B.s:29     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000004 .Loc.4
+D:\msys64\tmp\ccMMpT6B.s:33     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000008 .Loc.5
+D:\msys64\tmp\ccMMpT6B.s:35     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000008 .Loc.6
+D:\msys64\tmp\ccMMpT6B.s:36     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000008 .Loc.7
+D:\msys64\tmp\ccMMpT6B.s:40     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:000000000000000e .Loc.8
+D:\msys64\tmp\ccMMpT6B.s:44     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000014 .Loc.9
+D:\msys64\tmp\ccMMpT6B.s:55     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000022 .Loc.10
+D:\msys64\tmp\ccMMpT6B.s:57     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000022 .Loc.11
+D:\msys64\tmp\ccMMpT6B.s:60     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000024 .Loc.12
+D:\msys64\tmp\ccMMpT6B.s:62     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000026 L0
+D:\msys64\tmp\ccMMpT6B.s:67     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000000 DComp_MIDI_Host_NextMIDIStreamingDataEndpoint
+D:\msys64\tmp\ccMMpT6B.s:70     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000000 .Loc.13
+D:\msys64\tmp\ccMMpT6B.s:71     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:76     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000000 .Loc.14
+D:\msys64\tmp\ccMMpT6B.s:78     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000002 .Loc.15
+D:\msys64\tmp\ccMMpT6B.s:79     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000002 .Loc.16
+D:\msys64\tmp\ccMMpT6B.s:82     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000004 .Loc.17
+D:\msys64\tmp\ccMMpT6B.s:86     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000008 .Loc.18
+D:\msys64\tmp\ccMMpT6B.s:88     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000008 .Loc.19
+D:\msys64\tmp\ccMMpT6B.s:89     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000008 .Loc.20
+D:\msys64\tmp\ccMMpT6B.s:90     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000008 .Loc.21
+D:\msys64\tmp\ccMMpT6B.s:94     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000000c .Loc.22
+D:\msys64\tmp\ccMMpT6B.s:97     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000010 .Loc.23
+D:\msys64\tmp\ccMMpT6B.s:100    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000012 .Loc.24
+D:\msys64\tmp\ccMMpT6B.s:103    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000016 .Loc.25
+D:\msys64\tmp\ccMMpT6B.s:108    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001a .Loc.26
+D:\msys64\tmp\ccMMpT6B.s:110    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001a .Loc.27
+D:\msys64\tmp\ccMMpT6B.s:111    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001a .Loc.28
+D:\msys64\tmp\ccMMpT6B.s:114    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001e .Loc.29
+D:\msys64\tmp\ccMMpT6B.s:118    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000022 .Loc.30
+D:\msys64\tmp\ccMMpT6B.s:121    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000024 .Loc.31
+D:\msys64\tmp\ccMMpT6B.s:123    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000026 L0
+D:\msys64\tmp\ccMMpT6B.s:129    .text.MIDI_Host_ConfigurePipes:0000000000000000 MIDI_Host_ConfigurePipes
+D:\msys64\tmp\ccMMpT6B.s:132    .text.MIDI_Host_ConfigurePipes:0000000000000000 .Loc.32
+D:\msys64\tmp\ccMMpT6B.s:133    .text.MIDI_Host_ConfigurePipes:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:134    .text.MIDI_Host_ConfigurePipes:0000000000000000 .Loc.33
+D:\msys64\tmp\ccMMpT6B.s:195    .text.MIDI_Host_ConfigurePipes:0000000000000020 L0
+D:\msys64\tmp\ccMMpT6B.s:196    .text.MIDI_Host_ConfigurePipes:0000000000000022 L0
+D:\msys64\tmp\ccMMpT6B.s:212    .text.MIDI_Host_ConfigurePipes:0000000000000030 .Loc.34
+D:\msys64\tmp\ccMMpT6B.s:214    .text.MIDI_Host_ConfigurePipes:0000000000000030 .Loc.35
+D:\msys64\tmp\ccMMpT6B.s:219    .text.MIDI_Host_ConfigurePipes:0000000000000036 .Loc.36
+D:\msys64\tmp\ccMMpT6B.s:225    .text.MIDI_Host_ConfigurePipes:000000000000003e .Loc.37
+D:\msys64\tmp\ccMMpT6B.s:226    .text.MIDI_Host_ConfigurePipes:000000000000003e .Loc.38
+D:\msys64\tmp\ccMMpT6B.s:230    .text.MIDI_Host_ConfigurePipes:0000000000000044 .Loc.39
+D:\msys64\tmp\ccMMpT6B.s:234    .text.MIDI_Host_ConfigurePipes:000000000000004a .Loc.40
+D:\msys64\tmp\ccMMpT6B.s:235    .text.MIDI_Host_ConfigurePipes:000000000000004a .Loc.41
+D:\msys64\tmp\ccMMpT6B.s:243    .text.MIDI_Host_ConfigurePipes:0000000000000056 .Loc.42
+D:\msys64\tmp\ccMMpT6B.s:246    .text.MIDI_Host_ConfigurePipes:0000000000000058 .Loc.43
+D:\msys64\tmp\ccMMpT6B.s:253    .text.MIDI_Host_ConfigurePipes:0000000000000064 .Loc.44
+D:\msys64\tmp\ccMMpT6B.s:259    .text.MIDI_Host_ConfigurePipes:000000000000006e .Loc.45
+D:\msys64\tmp\ccMMpT6B.s:265    .text.MIDI_Host_ConfigurePipes:0000000000000072 .Loc.46
+D:\msys64\tmp\ccMMpT6B.s:266    .text.MIDI_Host_ConfigurePipes:0000000000000072 .Loc.47
+D:\msys64\tmp\ccMMpT6B.s:276    .text.MIDI_Host_ConfigurePipes:0000000000000084 .Loc.48
+D:\msys64\tmp\ccMMpT6B.s:279    .text.MIDI_Host_ConfigurePipes:0000000000000088 .Loc.49
+D:\msys64\tmp\ccMMpT6B.s:280    .text.MIDI_Host_ConfigurePipes:0000000000000088 .Loc.50
+D:\msys64\tmp\ccMMpT6B.s:284    .text.MIDI_Host_ConfigurePipes:000000000000008c .Loc.51
+D:\msys64\tmp\ccMMpT6B.s:285    .text.MIDI_Host_ConfigurePipes:000000000000008c .Loc.52
+D:\msys64\tmp\ccMMpT6B.s:290    .text.MIDI_Host_ConfigurePipes:0000000000000094 .Loc.53
+D:\msys64\tmp\ccMMpT6B.s:294    .text.MIDI_Host_ConfigurePipes:000000000000009a .Loc.54
+D:\msys64\tmp\ccMMpT6B.s:297    .text.MIDI_Host_ConfigurePipes:000000000000009e .Loc.55
+D:\msys64\tmp\ccMMpT6B.s:307    .text.MIDI_Host_ConfigurePipes:00000000000000b0 .Loc.56
+D:\msys64\tmp\ccMMpT6B.s:308    .text.MIDI_Host_ConfigurePipes:00000000000000b0 .Loc.57
+D:\msys64\tmp\ccMMpT6B.s:316    .text.MIDI_Host_ConfigurePipes:00000000000000be .Loc.58
+D:\msys64\tmp\ccMMpT6B.s:317    .text.MIDI_Host_ConfigurePipes:00000000000000be .Loc.59
+D:\msys64\tmp\ccMMpT6B.s:322    .text.MIDI_Host_ConfigurePipes:00000000000000c2 .Loc.60
+D:\msys64\tmp\ccMMpT6B.s:324    .text.MIDI_Host_ConfigurePipes:00000000000000c2 .Loc.61
+D:\msys64\tmp\ccMMpT6B.s:328    .text.MIDI_Host_ConfigurePipes:00000000000000c8 .Loc.62
+D:\msys64\tmp\ccMMpT6B.s:329    .text.MIDI_Host_ConfigurePipes:00000000000000c8 .Loc.63
+D:\msys64\tmp\ccMMpT6B.s:333    .text.MIDI_Host_ConfigurePipes:00000000000000ce .Loc.64
+D:\msys64\tmp\ccMMpT6B.s:336    .text.MIDI_Host_ConfigurePipes:00000000000000ce .Loc.65
+D:\msys64\tmp\ccMMpT6B.s:352    .text.MIDI_Host_ConfigurePipes:00000000000000e8 .Loc.66
+D:\msys64\tmp\ccMMpT6B.s:364    .text.MIDI_Host_ConfigurePipes:00000000000000f8 .Loc.67
+D:\msys64\tmp\ccMMpT6B.s:377    .text.MIDI_Host_ConfigurePipes:0000000000000110 .Loc.68
+D:\msys64\tmp\ccMMpT6B.s:378    .text.MIDI_Host_ConfigurePipes:0000000000000110 .Loc.69
+D:\msys64\tmp\ccMMpT6B.s:387    .text.MIDI_Host_ConfigurePipes:0000000000000120 .Loc.70
+D:\msys64\tmp\ccMMpT6B.s:388    .text.MIDI_Host_ConfigurePipes:0000000000000120 .Loc.71
+D:\msys64\tmp\ccMMpT6B.s:392    .text.MIDI_Host_ConfigurePipes:0000000000000124 .Loc.72
+D:\msys64\tmp\ccMMpT6B.s:396    .text.MIDI_Host_ConfigurePipes:0000000000000126 .Loc.73
+D:\msys64\tmp\ccMMpT6B.s:398    .text.MIDI_Host_ConfigurePipes:0000000000000126 .Loc.74
+D:\msys64\tmp\ccMMpT6B.s:405    .text.MIDI_Host_ConfigurePipes:000000000000012c .Loc.75
+D:\msys64\tmp\ccMMpT6B.s:410    .text.MIDI_Host_ConfigurePipes:0000000000000132 L0
+D:\msys64\tmp\ccMMpT6B.s:416    .text.MIDI_Host_Flush:0000000000000000 MIDI_Host_Flush
+D:\msys64\tmp\ccMMpT6B.s:419    .text.MIDI_Host_Flush:0000000000000000 .Loc.76
+D:\msys64\tmp\ccMMpT6B.s:420    .text.MIDI_Host_Flush:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:425    .text.MIDI_Host_Flush:0000000000000000 .Loc.77
+D:\msys64\tmp\ccMMpT6B.s:427    .text.MIDI_Host_Flush:0000000000000002 .Loc.78
+D:\msys64\tmp\ccMMpT6B.s:428    .text.MIDI_Host_Flush:0000000000000002 .Loc.79
+D:\msys64\tmp\ccMMpT6B.s:431    .text.MIDI_Host_Flush:0000000000000006 .Loc.80
+D:\msys64\tmp\ccMMpT6B.s:434    .text.MIDI_Host_Flush:000000000000000a .Loc.81
+D:\msys64\tmp\ccMMpT6B.s:435    .text.MIDI_Host_Flush:000000000000000a .Loc.82
+D:\msys64\tmp\ccMMpT6B.s:436    .text.MIDI_Host_Flush:000000000000000a .Loc.83
+D:\msys64\tmp\ccMMpT6B.s:439    .text.MIDI_Host_Flush:0000000000000010 .Loc.84
+D:\msys64\tmp\ccMMpT6B.s:440    .text.MIDI_Host_Flush:0000000000000010 .Loc.85
+D:\msys64\tmp\ccMMpT6B.s:441    .text.MIDI_Host_Flush:0000000000000010 .Loc.86
+D:\msys64\tmp\ccMMpT6B.s:444    .text.MIDI_Host_Flush:0000000000000018 .Loc.87
+D:\msys64\tmp\ccMMpT6B.s:447    .text.MIDI_Host_Flush:000000000000001c .Loc.88
+D:\msys64\tmp\ccMMpT6B.s:449    .text.MIDI_Host_Flush:000000000000001c .Loc.89
+D:\msys64\tmp\ccMMpT6B.s:452    .text.MIDI_Host_Flush:0000000000000020 .Loc.90
+D:\msys64\tmp\ccMMpT6B.s:456    .text.MIDI_Host_Flush:0000000000000028 .Loc.91
+D:\msys64\tmp\ccMMpT6B.s:459    .text.MIDI_Host_Flush:000000000000002a .Loc.92
+D:\msys64\tmp\ccMMpT6B.s:462    .text.MIDI_Host_Flush:000000000000002e .Loc.93
+D:\msys64\tmp\ccMMpT6B.s:463    .text.MIDI_Host_Flush:000000000000002e .Loc.94
+D:\msys64\tmp\ccMMpT6B.s:464    .text.MIDI_Host_Flush:000000000000002e .Loc.95
+D:\msys64\tmp\ccMMpT6B.s:468    .text.MIDI_Host_Flush:0000000000000032 .Loc.96
+D:\msys64\tmp\ccMMpT6B.s:472    .text.MIDI_Host_Flush:0000000000000036 .Loc.97
+D:\msys64\tmp\ccMMpT6B.s:475    .text.MIDI_Host_Flush:0000000000000038 .Loc.98
+D:\msys64\tmp\ccMMpT6B.s:477    .text.MIDI_Host_Flush:000000000000003a L0
+D:\msys64\tmp\ccMMpT6B.s:483    .text.MIDI_Host_SendEventPacket:0000000000000000 MIDI_Host_SendEventPacket
+D:\msys64\tmp\ccMMpT6B.s:486    .text.MIDI_Host_SendEventPacket:0000000000000000 .Loc.99
+D:\msys64\tmp\ccMMpT6B.s:487    .text.MIDI_Host_SendEventPacket:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:492    .text.MIDI_Host_SendEventPacket:0000000000000000 .Loc.100
+D:\msys64\tmp\ccMMpT6B.s:496    .text.MIDI_Host_SendEventPacket:0000000000000004 .Loc.101
+D:\msys64\tmp\ccMMpT6B.s:497    .text.MIDI_Host_SendEventPacket:0000000000000004 .Loc.102
+D:\msys64\tmp\ccMMpT6B.s:499    .text.MIDI_Host_SendEventPacket:0000000000000008 .Loc.103
+D:\msys64\tmp\ccMMpT6B.s:502    .text.MIDI_Host_SendEventPacket:000000000000000c .Loc.104
+D:\msys64\tmp\ccMMpT6B.s:506    .text.MIDI_Host_SendEventPacket:0000000000000012 .Loc.105
+D:\msys64\tmp\ccMMpT6B.s:507    .text.MIDI_Host_SendEventPacket:0000000000000012 .Loc.106
+D:\msys64\tmp\ccMMpT6B.s:510    .text.MIDI_Host_SendEventPacket:0000000000000018 .Loc.107
+D:\msys64\tmp\ccMMpT6B.s:511    .text.MIDI_Host_SendEventPacket:0000000000000018 .Loc.108
+D:\msys64\tmp\ccMMpT6B.s:512    .text.MIDI_Host_SendEventPacket:0000000000000018 .Loc.109
+D:\msys64\tmp\ccMMpT6B.s:514    .text.MIDI_Host_SendEventPacket:000000000000001c .Loc.110
+D:\msys64\tmp\ccMMpT6B.s:518    .text.MIDI_Host_SendEventPacket:0000000000000020 .Loc.111
+D:\msys64\tmp\ccMMpT6B.s:519    .text.MIDI_Host_SendEventPacket:0000000000000020 .Loc.112
+D:\msys64\tmp\ccMMpT6B.s:520    .text.MIDI_Host_SendEventPacket:0000000000000020 .Loc.113
+D:\msys64\tmp\ccMMpT6B.s:526    .text.MIDI_Host_SendEventPacket:0000000000000028 .Loc.114
+D:\msys64\tmp\ccMMpT6B.s:529    .text.MIDI_Host_SendEventPacket:000000000000002c .Loc.115
+D:\msys64\tmp\ccMMpT6B.s:532    .text.MIDI_Host_SendEventPacket:0000000000000030 .Loc.116
+D:\msys64\tmp\ccMMpT6B.s:533    .text.MIDI_Host_SendEventPacket:0000000000000030 .Loc.117
+D:\msys64\tmp\ccMMpT6B.s:536    .text.MIDI_Host_SendEventPacket:0000000000000034 .Loc.118
+D:\msys64\tmp\ccMMpT6B.s:539    .text.MIDI_Host_SendEventPacket:0000000000000038 .Loc.119
+D:\msys64\tmp\ccMMpT6B.s:541    .text.MIDI_Host_SendEventPacket:0000000000000038 .Loc.120
+D:\msys64\tmp\ccMMpT6B.s:544    .text.MIDI_Host_SendEventPacket:000000000000003c .Loc.121
+D:\msys64\tmp\ccMMpT6B.s:548    .text.MIDI_Host_SendEventPacket:0000000000000044 .Loc.122
+D:\msys64\tmp\ccMMpT6B.s:551    .text.MIDI_Host_SendEventPacket:0000000000000046 .Loc.123
+D:\msys64\tmp\ccMMpT6B.s:555    .text.MIDI_Host_SendEventPacket:000000000000004a .Loc.124
+D:\msys64\tmp\ccMMpT6B.s:558    .text.MIDI_Host_SendEventPacket:000000000000004a .Loc.125
+D:\msys64\tmp\ccMMpT6B.s:563    .text.MIDI_Host_SendEventPacket:000000000000004e .Loc.126
+D:\msys64\tmp\ccMMpT6B.s:568    .text.MIDI_Host_SendEventPacket:0000000000000050 .Loc.127
+D:\msys64\tmp\ccMMpT6B.s:570    .text.MIDI_Host_SendEventPacket:0000000000000052 L0
+D:\msys64\tmp\ccMMpT6B.s:576    .text.MIDI_Host_ReceiveEventPacket:0000000000000000 MIDI_Host_ReceiveEventPacket
+D:\msys64\tmp\ccMMpT6B.s:579    .text.MIDI_Host_ReceiveEventPacket:0000000000000000 .Loc.128
+D:\msys64\tmp\ccMMpT6B.s:580    .text.MIDI_Host_ReceiveEventPacket:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:585    .text.MIDI_Host_ReceiveEventPacket:0000000000000000 .Loc.129
+D:\msys64\tmp\ccMMpT6B.s:589    .text.MIDI_Host_ReceiveEventPacket:0000000000000004 .Loc.130
+D:\msys64\tmp\ccMMpT6B.s:590    .text.MIDI_Host_ReceiveEventPacket:0000000000000004 .Loc.131
+D:\msys64\tmp\ccMMpT6B.s:592    .text.MIDI_Host_ReceiveEventPacket:0000000000000008 .Loc.132
+D:\msys64\tmp\ccMMpT6B.s:595    .text.MIDI_Host_ReceiveEventPacket:000000000000000c .Loc.133
+D:\msys64\tmp\ccMMpT6B.s:599    .text.MIDI_Host_ReceiveEventPacket:0000000000000012 .Loc.134
+D:\msys64\tmp\ccMMpT6B.s:600    .text.MIDI_Host_ReceiveEventPacket:0000000000000012 .Loc.135
+D:\msys64\tmp\ccMMpT6B.s:603    .text.MIDI_Host_ReceiveEventPacket:0000000000000018 .Loc.136
+D:\msys64\tmp\ccMMpT6B.s:604    .text.MIDI_Host_ReceiveEventPacket:0000000000000018 .Loc.137
+D:\msys64\tmp\ccMMpT6B.s:605    .text.MIDI_Host_ReceiveEventPacket:0000000000000018 .Loc.138
+D:\msys64\tmp\ccMMpT6B.s:607    .text.MIDI_Host_ReceiveEventPacket:000000000000001c .Loc.139
+D:\msys64\tmp\ccMMpT6B.s:610    .text.MIDI_Host_ReceiveEventPacket:0000000000000020 .Loc.140
+D:\msys64\tmp\ccMMpT6B.s:616    .text.MIDI_Host_ReceiveEventPacket:0000000000000028 .Loc.141
+D:\msys64\tmp\ccMMpT6B.s:619    .text.MIDI_Host_ReceiveEventPacket:000000000000002c .Loc.142
+D:\msys64\tmp\ccMMpT6B.s:620    .text.MIDI_Host_ReceiveEventPacket:000000000000002c .Loc.143
+D:\msys64\tmp\ccMMpT6B.s:622    .text.MIDI_Host_ReceiveEventPacket:0000000000000030 .Loc.144
+D:\msys64\tmp\ccMMpT6B.s:625    .text.MIDI_Host_ReceiveEventPacket:0000000000000034 .Loc.145
+D:\msys64\tmp\ccMMpT6B.s:627    .text.MIDI_Host_ReceiveEventPacket:0000000000000034 .Loc.146
+D:\msys64\tmp\ccMMpT6B.s:630    .text.MIDI_Host_ReceiveEventPacket:0000000000000038 .Loc.147
+D:\msys64\tmp\ccMMpT6B.s:634    .text.MIDI_Host_ReceiveEventPacket:0000000000000040 .Loc.148
+D:\msys64\tmp\ccMMpT6B.s:637    .text.MIDI_Host_ReceiveEventPacket:0000000000000042 .Loc.149
+D:\msys64\tmp\ccMMpT6B.s:641    .text.MIDI_Host_ReceiveEventPacket:0000000000000046 .Loc.150
+D:\msys64\tmp\ccMMpT6B.s:643    .text.MIDI_Host_ReceiveEventPacket:0000000000000046 .Loc.151
+D:\msys64\tmp\ccMMpT6B.s:648    .text.MIDI_Host_ReceiveEventPacket:000000000000004a .Loc.152
+D:\msys64\tmp\ccMMpT6B.s:651    .text.MIDI_Host_ReceiveEventPacket:000000000000004c .Loc.153
+D:\msys64\tmp\ccMMpT6B.s:653    .text.MIDI_Host_ReceiveEventPacket:000000000000004e L0
+D:\msys64\tmp\ccMMpT6B.s:65     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000026 L0
+D:\msys64\tmp\ccMMpT6B.s:126    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000026 L0
+D:\msys64\tmp\ccMMpT6B.s:413    .text.MIDI_Host_ConfigurePipes:0000000000000132 L0
+D:\msys64\tmp\ccMMpT6B.s:480    .text.MIDI_Host_Flush:000000000000003a L0
+D:\msys64\tmp\ccMMpT6B.s:573    .text.MIDI_Host_SendEventPacket:0000000000000052 L0
+D:\msys64\tmp\ccMMpT6B.s:656    .text.MIDI_Host_ReceiveEventPacket:000000000000004e L0
+                     .debug_frame:0000000000000000 L0
+D:\msys64\tmp\ccMMpT6B.s:54     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000022 .L6
+D:\msys64\tmp\ccMMpT6B.s:50     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:000000000000001e .L3
+D:\msys64\tmp\ccMMpT6B.s:107    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001a .L8
+D:\msys64\tmp\ccMMpT6B.s:117    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000022 .L11
+D:\msys64\tmp\ccMMpT6B.s:221    .text.MIDI_Host_ConfigurePipes:0000000000000038 .L01
+D:\msys64\tmp\ccMMpT6B.s:395    .text.MIDI_Host_ConfigurePipes:0000000000000126 .L17
+D:\msys64\tmp\ccMMpT6B.s:335    .text.MIDI_Host_ConfigurePipes:00000000000000ce .L12
+D:\msys64\tmp\ccMMpT6B.s:403    .text.MIDI_Host_ConfigurePipes:000000000000012c .L18
+D:\msys64\tmp\ccMMpT6B.s:362    .text.MIDI_Host_ConfigurePipes:00000000000000f8 .L14
+D:\msys64\tmp\ccMMpT6B.s:263    .text.MIDI_Host_ConfigurePipes:0000000000000072 .L16
+D:\msys64\tmp\ccMMpT6B.s:321    .text.MIDI_Host_ConfigurePipes:00000000000000c2 .L15
+D:\msys64\tmp\ccMMpT6B.s:467    .text.MIDI_Host_Flush:0000000000000032 .L22
+D:\msys64\tmp\ccMMpT6B.s:471    .text.MIDI_Host_Flush:0000000000000036 .L23
+D:\msys64\tmp\ccMMpT6B.s:562    .text.MIDI_Host_SendEventPacket:000000000000004e .L30
+D:\msys64\tmp\ccMMpT6B.s:554    .text.MIDI_Host_SendEventPacket:000000000000004a .L27
+D:\msys64\tmp\ccMMpT6B.s:566    .text.MIDI_Host_SendEventPacket:0000000000000050 .L24
+D:\msys64\tmp\ccMMpT6B.s:640    .text.MIDI_Host_ReceiveEventPacket:0000000000000046 .L33
+D:\msys64\tmp\ccMMpT6B.s:647    .text.MIDI_Host_ReceiveEventPacket:000000000000004a .L36
+D:\msys64\tmp\ccMMpT6B.s:1971   .debug_abbrev:0000000000000000 .Ldebug_abbrev0
+D:\msys64\tmp\ccMMpT6B.s:3292   .debug_ranges:0000000000000000 .Ldebug_ranges0
+D:\msys64\tmp\ccMMpT6B.s:3316   .debug_line:0000000000000000 .Ldebug_line0
+D:\msys64\tmp\ccMMpT6B.s:578    .text.MIDI_Host_ReceiveEventPacket:0000000000000000 .LFB36
+D:\msys64\tmp\ccMMpT6B.s:654    .text.MIDI_Host_ReceiveEventPacket:000000000000004e .LFE36
+D:\msys64\tmp\ccMMpT6B.s:2559   .debug_loc:0000000000000008 .LLST17
+D:\msys64\tmp\ccMMpT6B.s:2550   .debug_loc:0000000000000000 .LVUS17
+D:\msys64\tmp\ccMMpT6B.s:2605   .debug_loc:0000000000000056 .LLST18
+D:\msys64\tmp\ccMMpT6B.s:2596   .debug_loc:000000000000004e .LVUS18
+D:\msys64\tmp\ccMMpT6B.s:626    .text.MIDI_Host_ReceiveEventPacket:0000000000000034 .LBB10
+D:\msys64\tmp\ccMMpT6B.s:642    .text.MIDI_Host_ReceiveEventPacket:0000000000000046 .LBE10
+D:\msys64\tmp\ccMMpT6B.s:2645   .debug_loc:000000000000009e .LLST19
+D:\msys64\tmp\ccMMpT6B.s:2642   .debug_loc:000000000000009c .LVUS19
+D:\msys64\tmp\ccMMpT6B.s:618    .text.MIDI_Host_ReceiveEventPacket:000000000000002c .LVL47
+D:\msys64\tmp\ccMMpT6B.s:485    .text.MIDI_Host_SendEventPacket:0000000000000000 .LFB35
+D:\msys64\tmp\ccMMpT6B.s:571    .text.MIDI_Host_SendEventPacket:0000000000000052 .LFE35
+D:\msys64\tmp\ccMMpT6B.s:2663   .debug_loc:00000000000000bb .LLST13
+D:\msys64\tmp\ccMMpT6B.s:2652   .debug_loc:00000000000000b1 .LVUS13
+D:\msys64\tmp\ccMMpT6B.s:2718   .debug_loc:0000000000000119 .LLST14
+D:\msys64\tmp\ccMMpT6B.s:2707   .debug_loc:000000000000010f .LVUS14
+D:\msys64\tmp\ccMMpT6B.s:517    .text.MIDI_Host_SendEventPacket:0000000000000020 .LBB8
+D:\msys64\tmp\ccMMpT6B.s:557    .text.MIDI_Host_SendEventPacket:000000000000004a .LBE8
+D:\msys64\tmp\ccMMpT6B.s:2765   .debug_loc:000000000000016f .LLST15
+D:\msys64\tmp\ccMMpT6B.s:2762   .debug_loc:000000000000016d .LVUS15
+D:\msys64\tmp\ccMMpT6B.s:540    .text.MIDI_Host_SendEventPacket:0000000000000038 .LBB9
+D:\msys64\tmp\ccMMpT6B.s:556    .text.MIDI_Host_SendEventPacket:000000000000004a .LBE9
+D:\msys64\tmp\ccMMpT6B.s:2775   .debug_loc:0000000000000184 .LLST16
+D:\msys64\tmp\ccMMpT6B.s:2772   .debug_loc:0000000000000182 .LVUS16
+D:\msys64\tmp\ccMMpT6B.s:528    .text.MIDI_Host_SendEventPacket:000000000000002c .LVL37
+D:\msys64\tmp\ccMMpT6B.s:418    .text.MIDI_Host_Flush:0000000000000000 .LFB34
+D:\msys64\tmp\ccMMpT6B.s:478    .text.MIDI_Host_Flush:000000000000003a .LFE34
+D:\msys64\tmp\ccMMpT6B.s:2791   .debug_loc:000000000000019f .LLST11
+D:\msys64\tmp\ccMMpT6B.s:2782   .debug_loc:0000000000000197 .LVUS11
+D:\msys64\tmp\ccMMpT6B.s:448    .text.MIDI_Host_Flush:000000000000001c .LBB7
+D:\msys64\tmp\ccMMpT6B.s:461    .text.MIDI_Host_Flush:000000000000002e .LBE7
+D:\msys64\tmp\ccMMpT6B.s:2831   .debug_loc:00000000000001e7 .LLST12
+D:\msys64\tmp\ccMMpT6B.s:2828   .debug_loc:00000000000001e5 .LVUS12
+D:\msys64\tmp\ccMMpT6B.s:466    .text.MIDI_Host_Flush:0000000000000032 .LVL33
+D:\msys64\tmp\ccMMpT6B.s:69     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000000 .LFB33
+D:\msys64\tmp\ccMMpT6B.s:124    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000026 .LFE33
+D:\msys64\tmp\ccMMpT6B.s:2847   .debug_loc:0000000000000202 .LLST2
+D:\msys64\tmp\ccMMpT6B.s:2838   .debug_loc:00000000000001fa .LVUS2
+D:\msys64\tmp\ccMMpT6B.s:85     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000008 .LBB3
+D:\msys64\tmp\ccMMpT6B.s:109    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001a .LBE3
+D:\msys64\tmp\ccMMpT6B.s:2889   .debug_loc:000000000000024c .LLST3
+D:\msys64\tmp\ccMMpT6B.s:2884   .debug_loc:0000000000000248 .LVUS3
+D:\msys64\tmp\ccMMpT6B.s:2915   .debug_loc:0000000000000278 .LLST4
+D:\msys64\tmp\ccMMpT6B.s:2908   .debug_loc:0000000000000272 .LVUS4
+D:\msys64\tmp\ccMMpT6B.s:102    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000016 .LVL9
+D:\msys64\tmp\ccMMpT6B.s:16     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000000 .LFB32
+D:\msys64\tmp\ccMMpT6B.s:63     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000026 .LFE32
+D:\msys64\tmp\ccMMpT6B.s:2947   .debug_loc:00000000000002b1 .LLST0
+D:\msys64\tmp\ccMMpT6B.s:2942   .debug_loc:00000000000002ad .LVUS0
+D:\msys64\tmp\ccMMpT6B.s:32     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000008 .LBB2
+D:\msys64\tmp\ccMMpT6B.s:56     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000022 .LBE2
+D:\msys64\tmp\ccMMpT6B.s:2971   .debug_loc:00000000000002db .LLST1
+D:\msys64\tmp\ccMMpT6B.s:2968   .debug_loc:00000000000002d9 .LVUS1
+D:\msys64\tmp\ccMMpT6B.s:131    .text.MIDI_Host_ConfigurePipes:0000000000000000 .LFB31
+D:\msys64\tmp\ccMMpT6B.s:411    .text.MIDI_Host_ConfigurePipes:0000000000000132 .LFE31
+D:\msys64\tmp\ccMMpT6B.s:2983   .debug_loc:00000000000002f3 .LLST5
+D:\msys64\tmp\ccMMpT6B.s:3102   .debug_loc:00000000000003ec .LLST6
+D:\msys64\tmp\ccMMpT6B.s:3093   .debug_loc:00000000000003e4 .LVUS6
+D:\msys64\tmp\ccMMpT6B.s:3146   .debug_loc:0000000000000438 .LLST7
+D:\msys64\tmp\ccMMpT6B.s:3139   .debug_loc:0000000000000432 .LVUS7
+D:\msys64\tmp\ccMMpT6B.s:3181   .debug_loc:0000000000000474 .LLST8
+D:\msys64\tmp\ccMMpT6B.s:3174   .debug_loc:000000000000046e .LVUS8
+D:\msys64\tmp\ccMMpT6B.s:3218   .debug_loc:00000000000004b2 .LLST9
+D:\msys64\tmp\ccMMpT6B.s:3207   .debug_loc:00000000000004a8 .LVUS9
+D:\msys64\tmp\ccMMpT6B.s:3248   .debug_loc:00000000000004f7 .LLST10
+D:\msys64\tmp\ccMMpT6B.s:3243   .debug_loc:00000000000004f3 .LVUS10
+D:\msys64\tmp\ccMMpT6B.s:274    .text.MIDI_Host_ConfigurePipes:0000000000000082 .LVL18
+D:\msys64\tmp\ccMMpT6B.s:306    .text.MIDI_Host_ConfigurePipes:00000000000000b0 .LVL20
+D:\msys64\tmp\ccMMpT6B.s:376    .text.MIDI_Host_ConfigurePipes:0000000000000110 .LVL25
+D:\msys64\tmp\ccMMpT6B.s:252    .text.MIDI_Host_ConfigurePipes:0000000000000064 .LVL16
+D:\msys64\tmp\ccMMpT6B.s:577    .text.MIDI_Host_ReceiveEventPacket:0000000000000000 .LVL44
+D:\msys64\tmp\ccMMpT6B.s:588    .text.MIDI_Host_ReceiveEventPacket:0000000000000004 .LVL45
+D:\msys64\tmp\ccMMpT6B.s:646    .text.MIDI_Host_ReceiveEventPacket:000000000000004a .LVL51
+D:\msys64\tmp\ccMMpT6B.s:615    .text.MIDI_Host_ReceiveEventPacket:0000000000000028 .LVL46
+D:\msys64\tmp\ccMMpT6B.s:629    .text.MIDI_Host_ReceiveEventPacket:0000000000000038 .LVL48
+D:\msys64\tmp\ccMMpT6B.s:636    .text.MIDI_Host_ReceiveEventPacket:0000000000000042 .LVL49
+D:\msys64\tmp\ccMMpT6B.s:484    .text.MIDI_Host_SendEventPacket:0000000000000000 .LVL34
+D:\msys64\tmp\ccMMpT6B.s:495    .text.MIDI_Host_SendEventPacket:0000000000000004 .LVL35
+D:\msys64\tmp\ccMMpT6B.s:561    .text.MIDI_Host_SendEventPacket:000000000000004e .LVL42
+D:\msys64\tmp\ccMMpT6B.s:565    .text.MIDI_Host_SendEventPacket:0000000000000050 .LVL43
+D:\msys64\tmp\ccMMpT6B.s:525    .text.MIDI_Host_SendEventPacket:0000000000000028 .LVL36
+D:\msys64\tmp\ccMMpT6B.s:535    .text.MIDI_Host_SendEventPacket:0000000000000034 .LVL38
+D:\msys64\tmp\ccMMpT6B.s:543    .text.MIDI_Host_SendEventPacket:000000000000003c .LVL39
+D:\msys64\tmp\ccMMpT6B.s:550    .text.MIDI_Host_SendEventPacket:0000000000000046 .LVL40
+D:\msys64\tmp\ccMMpT6B.s:417    .text.MIDI_Host_Flush:0000000000000000 .LVL29
+D:\msys64\tmp\ccMMpT6B.s:430    .text.MIDI_Host_Flush:0000000000000006 .LVL30
+D:\msys64\tmp\ccMMpT6B.s:451    .text.MIDI_Host_Flush:0000000000000020 .LVL31
+D:\msys64\tmp\ccMMpT6B.s:458    .text.MIDI_Host_Flush:000000000000002a .LVL32
+D:\msys64\tmp\ccMMpT6B.s:68     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000000 .LVL4
+D:\msys64\tmp\ccMMpT6B.s:81     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000004 .LVL5
+D:\msys64\tmp\ccMMpT6B.s:106    .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000001a .LVL10
+D:\msys64\tmp\ccMMpT6B.s:87     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000008 .LVL6
+D:\msys64\tmp\ccMMpT6B.s:93     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:000000000000000c .LVL7
+D:\msys64\tmp\ccMMpT6B.s:99     .text.DComp_MIDI_Host_NextMIDIStreamingDataEndpoint:0000000000000012 .LVL8
+D:\msys64\tmp\ccMMpT6B.s:15     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000000 .LVL0
+D:\msys64\tmp\ccMMpT6B.s:28     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000004 .LVL1
+D:\msys64\tmp\ccMMpT6B.s:34     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000008 .LVL2
+D:\msys64\tmp\ccMMpT6B.s:53     .text.DComp_MIDI_Host_NextMIDIStreamingInterface:0000000000000022 .LVL3
+D:\msys64\tmp\ccMMpT6B.s:136    .text.MIDI_Host_ConfigurePipes:0000000000000002 .LCFI0
+D:\msys64\tmp\ccMMpT6B.s:140    .text.MIDI_Host_ConfigurePipes:0000000000000004 .LCFI1
+D:\msys64\tmp\ccMMpT6B.s:144    .text.MIDI_Host_ConfigurePipes:0000000000000006 .LCFI2
+D:\msys64\tmp\ccMMpT6B.s:148    .text.MIDI_Host_ConfigurePipes:0000000000000008 .LCFI3
+D:\msys64\tmp\ccMMpT6B.s:152    .text.MIDI_Host_ConfigurePipes:000000000000000a .LCFI4
+D:\msys64\tmp\ccMMpT6B.s:156    .text.MIDI_Host_ConfigurePipes:000000000000000c .LCFI5
+D:\msys64\tmp\ccMMpT6B.s:160    .text.MIDI_Host_ConfigurePipes:000000000000000e .LCFI6
+D:\msys64\tmp\ccMMpT6B.s:164    .text.MIDI_Host_ConfigurePipes:0000000000000010 .LCFI7
+D:\msys64\tmp\ccMMpT6B.s:168    .text.MIDI_Host_ConfigurePipes:0000000000000012 .LCFI8
+D:\msys64\tmp\ccMMpT6B.s:172    .text.MIDI_Host_ConfigurePipes:0000000000000014 .LCFI9
+D:\msys64\tmp\ccMMpT6B.s:176    .text.MIDI_Host_ConfigurePipes:0000000000000016 .LCFI10
+D:\msys64\tmp\ccMMpT6B.s:180    .text.MIDI_Host_ConfigurePipes:0000000000000018 .LCFI11
+D:\msys64\tmp\ccMMpT6B.s:184    .text.MIDI_Host_ConfigurePipes:000000000000001a .LCFI12
+D:\msys64\tmp\ccMMpT6B.s:188    .text.MIDI_Host_ConfigurePipes:000000000000001c .LCFI13
+D:\msys64\tmp\ccMMpT6B.s:192    .text.MIDI_Host_ConfigurePipes:000000000000001e .LCFI14
+D:\msys64\tmp\ccMMpT6B.s:197    .text.MIDI_Host_ConfigurePipes:0000000000000022 .LCFI15
+D:\msys64\tmp\ccMMpT6B.s:201    .text.MIDI_Host_ConfigurePipes:0000000000000026 .LCFI16
+D:\msys64\tmp\ccMMpT6B.s:130    .text.MIDI_Host_ConfigurePipes:0000000000000000 .LVL11
+D:\msys64\tmp\ccMMpT6B.s:218    .text.MIDI_Host_ConfigurePipes:0000000000000036 .LVL13
+D:\msys64\tmp\ccMMpT6B.s:351    .text.MIDI_Host_ConfigurePipes:00000000000000e8 .LVL23
+D:\msys64\tmp\ccMMpT6B.s:361    .text.MIDI_Host_ConfigurePipes:00000000000000f8 .LVL24
+D:\msys64\tmp\ccMMpT6B.s:245    .text.MIDI_Host_ConfigurePipes:0000000000000058 .LVL15
+D:\msys64\tmp\ccMMpT6B.s:394    .text.MIDI_Host_ConfigurePipes:0000000000000126 .LVL27
+D:\msys64\tmp\ccMMpT6B.s:402    .text.MIDI_Host_ConfigurePipes:000000000000012c .LVL28
+D:\msys64\tmp\ccMMpT6B.s:242    .text.MIDI_Host_ConfigurePipes:0000000000000056 .LVL14
+D:\msys64\tmp\ccMMpT6B.s:213    .text.MIDI_Host_ConfigurePipes:0000000000000030 .LVL12
+D:\msys64\tmp\ccMMpT6B.s:262    .text.MIDI_Host_ConfigurePipes:0000000000000072 .LVL17
+D:\msys64\tmp\ccMMpT6B.s:334    .text.MIDI_Host_ConfigurePipes:00000000000000ce .LVL22
+D:\msys64\tmp\ccMMpT6B.s:283    .text.MIDI_Host_ConfigurePipes:000000000000008c .LVL19
+D:\msys64\tmp\ccMMpT6B.s:671    .debug_info:0000000000000000 .Ldebug_info0
+D:\msys64\tmp\ccMMpT6B.s:264    .text.MIDI_Host_ConfigurePipes:0000000000000072 .LBB4
+D:\msys64\tmp\ccMMpT6B.s:323    .text.MIDI_Host_ConfigurePipes:00000000000000c2 .LBE4
+D:\msys64\tmp\ccMMpT6B.s:363    .text.MIDI_Host_ConfigurePipes:00000000000000f8 .LBB5
+D:\msys64\tmp\ccMMpT6B.s:397    .text.MIDI_Host_ConfigurePipes:0000000000000126 .LBE5
+D:\msys64\tmp\ccMMpT6B.s:404    .text.MIDI_Host_ConfigurePipes:000000000000012c .LBB6
+D:\msys64\tmp\ccMMpT6B.s:409    .text.MIDI_Host_ConfigurePipes:0000000000000132 .LBE6
+
+UNDEFINED SYMBOLS
+Pipe_IsEndpointBound
+USB_GetNextDescriptorComp
+Pipe_ConfigurePipe
+USB_HostState
+Pipe_WaitUntilReady
+Pipe_Write_Stream_LE
+Pipe_Read_Stream_LE

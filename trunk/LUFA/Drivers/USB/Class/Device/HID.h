@@ -165,9 +165,9 @@
 			 *  \param[in] ReportData  Pointer to a buffer where the received HID report is stored.
 			 *  \param[in] ReportSize  Size in bytes of the received report from the host.
 			 */
-			void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo, const uint8_t ReportID,
+			/*void CALLBACK_HID_Device_ProcessHIDReport(USB_ClassInfo_HID_Device_t* const HIDInterfaceInfo, const uint8_t ReportID,
 			                                          const void* ReportData, const uint16_t ReportSize) ATTR_NON_NULL_PTR_ARG(1)
-			                                          ATTR_NON_NULL_PTR_ARG(3);
+			                                          ATTR_NON_NULL_PTR_ARG(3);*/
 
 		/* Inline Functions: */
 			/** Indicates that a millisecond of idle time has elapsed on the given HID interface, and the interface's idle count should be

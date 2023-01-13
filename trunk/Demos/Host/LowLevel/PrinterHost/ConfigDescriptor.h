@@ -66,12 +66,12 @@
 		/** Interface index of the Bidirectional Printer interface within the device, once the Configuration
 		 *  Descriptor has been processed.
 		 */
-		uint8_t PrinterInterfaceNumber;
+		extern uint8_t PrinterInterfaceNumber;
 		
 		/** Interface Alternate Setting index of the Bidirectional Printer interface within the device, once
 		 *  the Configuration Descriptor has been processed.
 		 */
-		uint8_t PrinterAltSetting;
+		extern uint8_t PrinterAltSetting;
 
 	/* Function Prototypes: */
 		uint8_t ProcessConfigurationDescriptor(void);	
